@@ -1,0 +1,91 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+import tkinter as tk
+from tkinter import filedialog
+import sympy as sp
+t1, t2, k, a = sp.symbols('t1 t2 k a', Reak=True)
+def Hamiltonian(a,t1,t2,m):
+    n=2*m
+    B=sp.zeros(2*m)
+    B[0, 2*m - 1]     = t1 * sp.exp(-sp.I * k * a)
+    B[2*m - 1, 0]     = t2
+    C=sp.zeros(2*m)
+    C[2*m-1, 0]     = t1 * sp.exp(sp.I * k * a)
+    C[0, 2*m-1]     = t2
+    A=sp.zeros(2*m)
+    for i in range(1, n + 1):
+        for j in range(1, n + 1):
+
+            if (i, j) == (1, 2):
+                A[i-1, j-1] = t1
+
+            elif (j == i + 1) and (1 <= j <= 2*m ):
+                A[i-1, j-1] = t2
+
+            elif (i == j + 1) and (2 <= i <= 2*m - 1):
+                A[i-1, j-1] = t1
+
+            elif (i, j) == (2*m, 2*m-1):
+                A[i-1, j-1] = t2
+            
+
+            # else: stays zero
+    
+    D=sp.zeros(2*m)
+    for i in range(1, n + 1):
+        for j in range(1, n + 1):
+
+
+
+            if (j == i + 1) and (1 <= j <= 2*m ):
+                D[i-1, j-1] = t1
+
+            elif (i == j + 1) and (1 <= i <= 2*m - 1):
+                D[i-1, j-1] = t2
+
+            elif (i, j) == (2*m, 2*m-1):
+                D[i-1, j-1] = t1
+
+            # else: stays zero
+
+    top    = sp.Matrix.hstack(A, B)
+    bottom = sp.Matrix.hstack(C, D)
+    H    = sp.Matrix.vstack(top, bottom)
+
+
+
+    return H
+
+def eval(matrix):
+    eval=matrix.eigenvals()
+    return eval
+
+
+
+H=Hamiltonian(1*10**(-9),-15,-0.5,2)
+
+eigenvalues=eval(H)
+e_vals=list(eigenvalues.keys())
+
+plt.figure()
+plt.grid()
+k_val=np.linspace(-1*10**(10),10**(10),200)
+
+for i in  range (len(e_vals)):
+    
+    f=sp.lambdify(k,e_vals[i], 'numpy')
+    y = np.real_if_close(f(k_val))
+
+    # IMPORTANT: give BOTH x and y
+    plt.plot(k_val, y)
+    plt.legend('12345678')
+    
+plt.ylabel('E(k)')
+plt.xlabel('k')
+plt.title('Energy Dispersion vs Crystal Momentum (m=2, t1=-5eV, t2=-2eV)')    
+    
+plt.show()
+
+
+
